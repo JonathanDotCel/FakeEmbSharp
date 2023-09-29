@@ -19,6 +19,14 @@ namespace Addons.FakeEmbed
 		}
 
 		/// <summary>
+		/// toggle the stuff
+		/// </summary>
+		public static void ToggleWindowVisible(this in IntPtr ptr, bool visible)
+		{
+			// toggle flags for making window invisible?
+		}
+
+		/// <summary>
 		/// check the stuff
 		/// </summary>
 		public static bool IsWindow(this in IntPtr ptr)
