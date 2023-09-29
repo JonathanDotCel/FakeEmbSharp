@@ -9,9 +9,19 @@ namespace Addons.FakeEmbed
 	internal static partial class Extensions
 	{
 		/// <summary>
+		/// hide *the stuff*
+		/// </summary>
+		public static void HideWindowButtons(this in IntPtr ptr)
+		{
+			int style = W32.GetWindowLong(ptr, W32.GWL_STYLE);
+			style &= ~(W32.WS_BORDER | W32.WS_CAPTION | W32.WS_SYSMENU | W32.WS_MINIMIZEBOX | W32.WS_MAXIMIZEBOX);
+			W32.SetWindowLong(ptr, W32.GWL_STYLE, style & ~W32.WS_SYSMENU);
+		}
+
+		/// <summary>
 		/// check the stuff
 		/// </summary>
-		public static bool IsWindow(this IntPtr ptr)
+		public static bool IsWindow(this in IntPtr ptr)
 		{
 			return ptr.ToInt64() != 0 && W32.IsWindow(ptr);
 		}

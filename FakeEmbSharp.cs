@@ -63,13 +63,12 @@ namespace Addons.FakeEmbed
 			AddControlToDock(DockSlot.LeftUr, dockControl);
 
 			refreshButton = dockControl.GetNode<Button>("Button");
-			GD.Print(refreshButton == null ? "NO BTN" : "btn");
 			refreshButton.Pressed += RefreshButton_Pressed;
 		}
 
 		public override void _MakeVisible(bool visible)
 		{
-			// todo: smart stuff
+			// can we fake-hide the window when visible=false?
 		}
 
 		public override void _EnablePlugin()
@@ -110,7 +109,6 @@ namespace Addons.FakeEmbed
 			ReparentGameWindow();
 		}
 
-
 		// Main window or any panel changed size
 		public void SizeChanged()
 		{
@@ -138,16 +136,16 @@ namespace Addons.FakeEmbed
 			Rect2 editorRect = editor.GetGlobalRect();
 
 			Rect2 dockRect = dockControl.GetGlobalRect();
+
+			// are these settings actually used?
 			ProjectSettings.SetSetting("display/window/size/test_width", dockRect.Size.X);
 			ProjectSettings.SetSetting("display/window/size/test_height", dockRect.Size.Y - windowsTitlebarOffset);
 			ProjectSettings.SetSetting("display/window/size/fullscreen", false);
-
+			GetEditorInterface().GetEditorSettings().Set("run/window_placement/rect", 2);
+			GetEditorInterface().GetEditorSettings().Set("run/window_placement/rect_custom_position", dockRect.Position);
 			// let the user decide with borderless, always on top, etc.
 			//ProjectSettings.SetSetting( "display/window/size/borderless", true );
 			//ProjectSettings.SetSetting( "display/window/size/always_on_top", false );
-
-			GetEditorInterface().GetEditorSettings().Set("run/window_placement/rect", 2);
-			GetEditorInterface().GetEditorSettings().Set("run/window_placement/rect_custom_position", dockRect.Position);
 
 			Log("FakeEmbSharp - Update Rects");
 
@@ -159,21 +157,19 @@ namespace Addons.FakeEmbed
 		// It just seems to work as of godot 4.11
 		public override void _Process(double delta)
 		{
+			// to we need this check?
+			if (!Engine.IsEditorHint()) { return; }
 
-			if (!Engine.IsEditorHint())
-			{
-				return;
-			}
-
+			// check init
 			bool playing = GetEditorInterface().IsPlayingScene();
-
-			if (playing && !wasPlaying)
-			{
-				Log("FakeEmbSharp Entered play state");
-				ReparentGameWindow();
-			}
+			if (playing && !wasPlaying) { OnPlayStart(); }
 			wasPlaying = playing;
+		}
 
+		private void OnPlayStart()
+		{
+			Log("FakeEmbSharp Entered play state");
+			ReparentGameWindow();
 		}
 
 		private void Log(string v)
@@ -254,10 +250,7 @@ namespace Addons.FakeEmbed
 			W32.SetParent(cachedGameHwnd, editorHwnd);
 
 			// Remove the border, buttons, stuff.
-			int style = W32.GetWindowLong(cachedGameHwnd, W32.GWL_STYLE);
-
-			style &= ~(W32.WS_BORDER | W32.WS_CAPTION | W32.WS_SYSMENU | W32.WS_MINIMIZEBOX | W32.WS_MAXIMIZEBOX);
-			W32.SetWindowLong(cachedGameHwnd, W32.GWL_STYLE, style & ~W32.WS_SYSMENU);
+			cachedGameHwnd.HideWindowButtons();
 
 			// Combine 2 calls:
 			// - reposition the window
